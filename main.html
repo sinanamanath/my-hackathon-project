@@ -7,6 +7,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <link rel="stylesheet" href="main.css" />
   <script>
     tailwind.config = {
@@ -83,7 +87,7 @@
     </div>
   </header>
 
-  <!-- ================= COMPACT SINGLE-LINE TRANSPARENT ROUNDED NAVBAR ================= -->
+  <!-- ================= NAVBAR ================= -->
   <div style="padding-top:20px; opacity: 0.9;" class="sticky top-3 z-50 max-w-7xl mx-auto px-2 sm:px-6 pointer-events-none">
     <nav class="pointer-events-auto w-full bg-white/80 backdrop-blur-md border border-slate-200/90 shadow-md shadow-slate-900/5 rounded-full px-2 sm:px-4 py-2 sm:py-2.5 transition-all duration-300">
       <div class="flex flex-nowrap items-center justify-between gap-1 w-full text-sm sm:text-base font-black text-slate-700">
@@ -115,7 +119,7 @@
     </nav>
   </div>
 
-  <!-- ================= VAST WEATHER & SOIL ADVISORY BANNER ================= -->
+  <!-- ================= WEATHER & SOIL ADVISORY BANNER ================= -->
   <section id="weather-advisory" class="max-w-7xl mx-auto px-6 py-8">
     <div class="bg-gradient-to-r from-brand-900 via-brand-800 to-slate-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
       <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl text-white pointer-events-none">
@@ -128,16 +132,19 @@
             <i class="fa-solid fa-bell animate-pulse"></i>
             <span data-en="Regional Agro-Met Advisory Active" data-hi="क्षेत्रीय कृषि-मौसम सलाह सक्रिय">Regional Agro-Met Advisory Active</span>
           </div>
-          <h1 class="text-3xl sm:text-4xl font-black leading-tight" data-en="Optimal Weather & Sowing Conditions Detected" data-hi="बुवाई के लिए अनुकूल मौसम एवं मिट्टी की स्थिति">
+          <h1 class="text-3xl sm:text-4xl font-black leading-tight" id="weather-headline">
             Optimal Weather & Sowing Conditions Detected
           </h1>
-          <p class="text-slate-300 text-sm sm:text-base leading-relaxed" data-en="Subtropical monsoon conditions provide suitable topsoil moisture (68%). Prepare nursery seedbeds for late Kharif vegetables or initiate land laser-leveling for upcoming Rabi grains." data-hi="मॉनसून नमी (68%) सब्जियों की नर्सरी और रबी की भूमि तैयारी के लिए सर्वथा उपयुक्त है।">
-            Subtropical monsoon conditions provide suitable topsoil moisture (68%). Prepare nursery seedbeds for late Kharif vegetables or initiate land laser-leveling for upcoming Rabi grains.
+          <p class="text-slate-300 text-sm sm:text-base leading-relaxed" id="weather-source-note">
+            Fetching live conditions…
           </p>
           <div class="flex flex-wrap gap-4 pt-2">
             <a href="#sms-triggers" id="sms-triggers-link" class="bg-white/10 hover:bg-white/20 text-white font-bold px-5 py-2.5 rounded-xl text-xs border border-white/20 transition flex items-center gap-2">
               <i class="fa-solid fa-mobile-screen"></i> <span data-en="Configure Weather SMS" data-hi="मौसम SMS सेट करें">Configure Weather SMS</span>
             </a>
+          </div>
+          <div class="bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10 mt-2" id="weather-crop-recommendation">
+            <div class="text-xs text-slate-400">Loading crop recommendations for current weather…</div>
           </div>
         </div>
 
@@ -147,32 +154,32 @@
               <span>Temperature</span>
               <i class="fa-solid fa-temperature-half text-amber-400"></i>
             </div>
-            <div class="text-2xl font-black mt-2">29.4°C</div>
-            <div class="text-[11px] text-emerald-300 mt-1 font-semibold">Optimal for Germination</div>
+            <div class="text-2xl font-black mt-2" id="weather-temp">—</div>
+            <div class="text-[11px] text-emerald-300 mt-1 font-semibold">Live · Open-Meteo</div>
           </div>
           <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
             <div class="flex items-center justify-between text-slate-300 text-xs">
-              <span>Soil Moisture</span>
+              <span>Humidity</span>
               <i class="fa-solid fa-droplet text-blue-400"></i>
             </div>
-            <div class="text-2xl font-black mt-2">68%</div>
-            <div class="text-[11px] text-emerald-300 mt-1 font-semibold">Adequate Sowing Vattar</div>
+            <div class="text-2xl font-black mt-2" id="weather-humidity">—</div>
+            <div class="text-[11px] text-emerald-300 mt-1 font-semibold">Live · Relative Humidity</div>
           </div>
           <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
             <div class="flex items-center justify-between text-slate-300 text-xs">
               <span>48h Rainfall</span>
               <i class="fa-solid fa-cloud-showers-heavy text-sky-400"></i>
             </div>
-            <div class="text-2xl font-black mt-2">12-18 mm</div>
-            <div class="text-[11px] text-amber-300 mt-1 font-semibold">Light Sprinkles Expected</div>
+            <div class="text-2xl font-black mt-2" id="weather-rain">—</div>
+            <div class="text-[11px] text-amber-300 mt-1 font-semibold">Forecast Total</div>
           </div>
           <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
             <div class="flex items-center justify-between text-slate-300 text-xs">
-              <span>Soil PH & Health</span>
-              <i class="fa-solid fa-flask-vial text-emerald-400"></i>
+              <span>Condition</span>
+              <i class="fa-solid fa-cloud-sun text-emerald-400"></i>
             </div>
-            <div class="text-2xl font-black mt-2">7.2 pH</div>
-            <div class="text-[11px] text-slate-300 mt-1 font-semibold">Neutral Loamy Soil</div>
+            <div class="text-lg font-black mt-2" id="weather-condition">—</div>
+            <div class="text-[11px] text-slate-300 mt-1 font-semibold">Current Sky</div>
           </div>
         </div>
       </div>
@@ -184,7 +191,7 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
       <div>
         <h2 class="text-3xl font-black text-slate-900" data-en="Beneficial Crops for Current Weather" data-hi="वर्तमान मौसम के लिए लाभकारी फसलें">Beneficial Crops for Current Weather</h2>
-        <p class="text-slate-500 text-sm mt-1" data-en="Curated crop recommendations categorized by growth duration, input cost, and projected ROI." data-hi="फसल अवधि, लागत और संभावित मुनाफे के आधार पर श्रेणीबद्ध अनुशंसित फसलें।">Curated crop recommendations categorized by growth duration, input cost, and projected ROI.</p>
+        <p class="text-slate-500 text-sm mt-1" id="crop-finder-subtitle">Curated crop recommendations categorized by growth duration, input cost, and projected ROI.</p>
       </div>
 
       <!-- Filter Buttons -->
@@ -198,12 +205,10 @@
     </div>
 
     <!-- Responsive Crop Grid -->
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="expanded-crop-grid">
-      <!-- Dynamic cards injected by main.js -->
-    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="expanded-crop-grid"></div>
   </section>
 
-  <!-- ================= VAST MANDI & SEED PRICE INTELLIGENCE ================= -->
+  <!-- ================= MANDI & SEED PRICE INTELLIGENCE ================= -->
   <section id="price-analytics" class="max-w-7xl mx-auto px-6 py-8">
     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
       
@@ -217,7 +222,6 @@
         <div class="flex items-center gap-3 w-full lg:w-auto bg-slate-50 p-2 rounded-2xl border border-slate-200">
           <span class="text-xs font-bold text-slate-600 pl-2" data-en="Active Crop:" data-hi="सक्रिय फसल:">Active Crop:</span>
           <select id="main-crop-selector" class="bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-extrabold text-slate-800 outline-none focus:ring-2 focus:ring-brand-500" onchange="syncSelectedCrop(this.value)">
-            <!-- Dynamic dropdown options -->
           </select>
         </div>
       </div>
@@ -225,16 +229,14 @@
       <!-- Graph & Spotlight Cards Grid -->
       <div class="grid lg:grid-cols-12 gap-8 my-8">
         
-        <!-- Expanded High-Res Chart Section -->
+        <!-- Expanded Chart Section -->
         <div class="lg:col-span-8 bg-slate-50/50 rounded-2xl p-6 border border-slate-100">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
             <div>
               <h4 class="font-extrabold text-slate-800 text-base" data-en="Price Trend & Harvest Prediction Curve" data-hi="मूल्य रुझान एवं कटाई पूर्वानुमान वक्र">Price Trend & Harvest Prediction Curve</h4>
               <p class="text-xs text-slate-400">Comparing APMC Mandi Sell Price (₹/Quintal) vs Certified Seed Rate (₹/10kg)</p>
             </div>
-            <div class="flex items-center gap-2" id="chart-optimal-indicator">
-              <!-- Injected Badge -->
-            </div>
+            <div class="flex items-center gap-2" id="chart-optimal-indicator"></div>
           </div>
           <div class="h-80 w-full">
             <canvas id="interactivePriceChart"></canvas>
@@ -242,12 +244,10 @@
         </div>
 
         <!-- Highlight Hub Cards -->
-        <div class="lg:col-span-4 space-y-5 flex flex-col justify-between" id="market-spotlight-cards">
-          <!-- Injected Spotlight HTML -->
-        </div>
+        <div class="lg:col-span-4 space-y-5 flex flex-col justify-between" id="market-spotlight-cards"></div>
       </div>
 
-      <!-- Dual Comparison Tables with Search -->
+      <!-- Comparison Tables -->
       <div class="grid lg:grid-cols-2 gap-8 pt-8 border-t border-slate-100">
         
         <!-- Seed Buying Comparison -->
@@ -270,9 +270,7 @@
                   <th class="p-3">Contact</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700" id="seed-table-rows">
-                <!-- Dynamic Rows -->
-              </tbody>
+              <tbody class="divide-y divide-slate-100 text-slate-700" id="seed-table-rows"></tbody>
             </table>
           </div>
         </div>
@@ -297,9 +295,7 @@
                   <th class="p-3">Directions</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700" id="mandi-table-rows">
-                <!-- Dynamic Rows -->
-              </tbody>
+              <tbody class="divide-y divide-slate-100 text-slate-700" id="mandi-table-rows"></tbody>
             </table>
           </div>
         </div>
@@ -438,9 +434,7 @@
       </div>
 
       <!-- Roadmap Grid -->
-      <div class="grid md:grid-cols-4 gap-6 relative" id="blueprint-steps-container">
-        <!-- Dynamic steps injected by main.js -->
-      </div>
+      <div class="grid md:grid-cols-4 gap-6 relative" id="blueprint-steps-container"></div>
     </div>
   </section>
 
@@ -458,118 +452,7 @@
         </button>
       </div>
 
-      <!-- Live Rides Grid -->
-      <div class="grid md:grid-cols-3 gap-6" id="rides-container">
-        <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 hover:bg-white hover:shadow-md transition">
-          <div class="flex justify-between items-start mb-3">
-            <span class="bg-brand-100 text-brand-800 text-[11px] font-black px-2.5 py-1 rounded-lg">Tractor Trolley</span>
-            <span class="text-xs font-bold text-emerald-600">₹40 / Qtl Rate</span>
-          </div>
-          <h4 class="font-extrabold text-slate-900 text-base">Rayya Bypass → Bhagtanwala Mandi</h4>
-          <p class="text-xs text-slate-500 mt-1">Driver: Gurmeet Singh • Phone Verified</p>
-          <div class="my-4 py-3 border-y border-slate-200/80 grid grid-cols-2 gap-2 text-xs">
-            <div>Departure: <strong class="block text-slate-800">Tomorrow, 05:00 AM</strong></div>
-            <div>Available: <strong class="block text-brand-700">45 Quintals</strong></div>
-          </div>
-          <button onclick="requestRide('Gurmeet Singh')" class="w-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold py-2.5 rounded-xl transition">
-            Book Shared Space
-          </button>
-        </div>
-
-        <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 hover:bg-white hover:shadow-md transition">
-          <div class="flex justify-between items-start mb-3">
-            <span class="bg-blue-100 text-blue-800 text-[11px] font-black px-2.5 py-1 rounded-lg">Mini Truck (Bolero Maxi)</span>
-            <span class="text-xs font-bold text-emerald-600">₹45 / Qtl Rate</span>
-          </div>
-          <h4 class="font-extrabold text-slate-900 text-base">Majitha Mandi → Amritsar City APMC</h4>
-          <p class="text-xs text-slate-500 mt-1">Driver: Harpreet Singh • Fast Express</p>
-          <div class="my-4 py-3 border-y border-slate-200/80 grid grid-cols-2 gap-2 text-xs">
-            <div>Departure: <strong class="block text-slate-800">Today, 08:30 PM</strong></div>
-            <div>Available: <strong class="block text-brand-700">18 Quintals</strong></div>
-          </div>
-          <button onclick="requestRide('Harpreet Singh')" class="w-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold py-2.5 rounded-xl transition">
-            Book Shared Space
-          </button>
-        </div>
-
-        <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 hover:bg-white hover:shadow-md transition">
-          <div class="flex justify-between items-start mb-3">
-            <span class="bg-amber-100 text-amber-800 text-[11px] font-black px-2.5 py-1 rounded-lg">High-Capacity Trailer</span>
-            <span class="text-xs font-bold text-emerald-600">₹35 / Qtl Rate</span>
-          </div>
-          <h4 class="font-extrabold text-slate-900 text-base">Jandiala Guru → Tarn Taran APMC</h4>
-          <p class="text-xs text-slate-500 mt-1">Driver: Sukhdev Dhillon • Community Fleet</p>
-          <div class="my-4 py-3 border-y border-slate-200/80 grid grid-cols-2 gap-2 text-xs">
-            <div>Departure: <strong class="block text-slate-800">Saturday, 06:00 AM</strong></div>
-            <div>Available: <strong class="block text-brand-700">90 Quintals</strong></div>
-          </div>
-          <button onclick="requestRide('Sukhdev Dhillon')" class="w-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold py-2.5 rounded-xl transition">
-            Book Shared Space
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= SMS PRICE TRIGGER SYSTEM ================= -->
-  <section id="sms-triggers" class="max-w-7xl mx-auto px-6 py-8">
-    <div class="bg-gradient-to-r from-slate-900 via-brand-950 to-brand-900 text-white rounded-3xl p-8 sm:p-10 shadow-2xl relative overflow-hidden">
-      <div class="grid lg:grid-cols-12 gap-10 items-center">
-        
-        <div class="lg:col-span-6 space-y-4">
-          <span class="bg-accent-500 text-brand-900 font-black text-xs uppercase tracking-widest px-3.5 py-1.5 rounded-full inline-block">
-            Automated SMS Watchdog
-          </span>
-          <h2 class="text-3xl sm:text-4xl font-black leading-tight" data-en="Get Instant SMS Alerts When Mandi Prices Move" data-hi="मंडी भाव बढ़ने या गिरने पर तुरंत एसएमएस अलर्ट पाएं">
-            Get Instant SMS Alerts When Mandi Prices Move
-          </h2>
-          <p class="text-slate-300 text-sm leading-relaxed" data-en="Set automated price triggers. You will receive an instant SMS the moment Mandi rates cross your upper target ceiling or fall below your baseline safety threshold." data-hi="अपने मोबाइल पर अलर्ट सेट करें। मंडी भाव के आपके लक्ष्य तक पहुंचने पर तुरंत SMS मिलेगा।">
-            Set automated price triggers. You will receive an instant SMS the moment Mandi rates cross your upper target ceiling or fall below your baseline safety threshold.
-          </p>
-          <div class="flex items-center space-x-4 text-xs text-slate-300 pt-2">
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-accent-400"></i> No Spam Policy</span>
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-bolt text-accent-400"></i> Instant 2-second SMS</span>
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-language text-accent-400"></i> Multilingual</span>
-          </div>
-        </div>
-
-        <div class="lg:col-span-6">
-          <form class="bg-white/10 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/15 space-y-4 shadow-xl" onsubmit="handleSmsSubscription(event)">
-            <div>
-              <label class="block text-xs font-bold text-slate-200 mb-1.5" data-en="Farmer Mobile Number" data-hi="किसान मोबाइल नंबर">Farmer Mobile Number</label>
-              <div class="relative">
-                <span class="absolute left-3.5 top-3 text-slate-400 font-bold text-xs">+91</span>
-                <input type="tel" id="sms-mobile" placeholder="98765 43210" pattern="[0-9]{10}" class="w-full bg-white text-slate-900 pl-12 pr-4 py-2.5 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-accent-400" required>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-bold text-slate-200 mb-1.5" data-en="Alert if Price Rises Above" data-hi="भाव इससे ऊपर जाने पर">Alert if Price Rises Above</label>
-                <input type="number" id="sms-trigger-rise" placeholder="₹4,000 / Qtl" class="w-full bg-white text-slate-900 px-3.5 py-2.5 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-accent-400">
-              </div>
-              <div>
-                <label class="block text-xs font-bold text-slate-200 mb-1.5" data-en="Alert if Price Falls Below" data-hi="भाव इससे नीचे जाने पर">Alert if Price Falls Below</label>
-                <input type="number" id="sms-trigger-fall" placeholder="₹3,400 / Qtl" class="w-full bg-white text-slate-900 px-3.5 py-2.5 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-accent-400">
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-bold text-slate-200 mb-1.5" data-en="Preferred SMS Language" data-hi="एसएमएस भाषा चुनें">Preferred SMS Language</label>
-              <select id="sms-language-select" class="w-full bg-white text-slate-900 px-3.5 py-2.5 rounded-xl font-bold text-xs outline-none focus:ring-2 focus:ring-accent-400">
-                <option value="Hindi">हिन्दी (Hindi SMS)</option>
-                <option value="English">English SMS</option>
-                <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi SMS)</option>
-              </select>
-            </div>
-
-            <button type="submit" class="w-full bg-accent-500 hover:bg-accent-600 text-brand-900 font-black py-3.5 rounded-xl text-xs uppercase tracking-widest shadow-xl transition">
-              <i class="fa-solid fa-bell mr-1.5"></i> <span data-en="Activate Live SMS Watchdog" data-hi="लाइव एसएमएस अलर्ट सक्रिय करें">Activate Live SMS Watchdog</span>
-            </button>
-          </form>
-        </div>
-
-      </div>
+      <div class="grid md:grid-cols-3 gap-6" id="rides-container"></div>
     </div>
   </section>
 
@@ -615,6 +498,104 @@
       <p class="text-slate-500">Designed for seamless performance on rural high-latency networks.</p>
     </div>
   </footer>
+
+  <!-- ================= MODALS ================= -->
+  <div id="location-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-black text-slate-900">Change Your Location</h3>
+        <button onclick="closeLocationModal()" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="flex gap-2 mb-3">
+        <input id="location-search-input" oninput="onLocationSearchInput()" type="text" placeholder="Search any Indian city, town or village…"
+          class="flex-1 border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-brand-500">
+        <button onclick="searchLocation()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 rounded-xl"><i class="fa-solid fa-magnifying-glass"></i></button>
+      </div>
+      <button onclick="useMyLocation()" class="w-full flex items-center justify-center gap-2 text-xs font-bold text-brand-700 bg-brand-50 hover:bg-brand-100 py-2.5 rounded-xl mb-3 transition">
+        <i class="fa-solid fa-location-crosshairs"></i> Use My Current Location
+      </button>
+      <div id="location-search-results" class="max-h-64 overflow-y-auto space-y-1"></div>
+      <p class="text-[10px] text-slate-400 mt-3">Location search & weather powered by Open-Meteo (free, no API key).</p>
+    </div>
+  </div>
+
+  <div id="map-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
+      <div class="flex justify-between items-center p-5 border-b border-slate-100">
+        <h3 id="map-modal-title" class="text-base font-black text-slate-900">Location</h3>
+        <button onclick="closeMapModal()" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div id="map-modal-canvas" class="w-full h-72"></div>
+      <div class="p-4 flex gap-3">
+        <a id="map-modal-gmaps-link" href="#" target="_blank" rel="noopener" class="flex-1 text-center bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-2.5 rounded-xl transition">
+          <i class="fa-brands fa-google mr-1"></i> Open in Google Maps
+        </a>
+        <a id="map-modal-directions-link" href="#" target="_blank" rel="noopener" class="flex-1 text-center bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold py-2.5 rounded-xl transition">
+          <i class="fa-solid fa-diamond-turn-right mr-1"></i> Get Directions
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="ride-popup-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 text-center">
+      <div class="w-14 h-14 mx-auto bg-brand-100 text-brand-700 rounded-2xl flex items-center justify-center text-2xl mb-3">
+        <i class="fa-solid fa-truck-fast"></i>
+      </div>
+      <h3 id="ride-popup-title" class="text-lg font-black text-slate-900">Driver</h3>
+      <p id="ride-popup-route" class="text-xs text-slate-500 mt-1 mb-4"></p>
+      <div class="flex gap-3">
+        <button onclick="closeRidePopup()" class="w-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold py-3 rounded-xl transition">Book Space</button>
+      </div>
+      <button onclick="closeRidePopup()" class="mt-4 text-xs font-bold text-slate-400 hover:text-slate-700">Close</button>
+    </div>
+  </div>
+
+  <div id="post-vehicle-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-black text-slate-900">Post Your Empty Trolley Space</h3>
+        <button onclick="closePostVehicleModal()" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="post-vehicle-form" onsubmit="submitVehiclePost(event)" class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Pickup Village/Mandi</label>
+            <input id="pv-origin" required type="text" placeholder="e.g. Rayya" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Destination APMC</label>
+            <input id="pv-dest" required type="text" placeholder="e.g. Bhagtanwala APMC" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Vehicle Type</label>
+            <select id="pv-type" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-brand-500">
+              <option>Tractor Trolley</option>
+              <option>Mini Truck (Bolero Maxi)</option>
+              <option>High-Capacity Trailer</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Available Space (Qtl)</label>
+            <input id="pv-space" type="number" placeholder="40" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Driver Name</label>
+          <input id="pv-driver" type="text" placeholder="Your name" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-brand-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Departure Time</label>
+          <input id="pv-time" type="text" placeholder="e.g. Tomorrow, 06:00 AM" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-brand-500">
+        </div>
+        <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-extrabold py-3 rounded-xl text-sm shadow-md transition">
+          List on Community Transport Pool
+        </button>
+      </form>
+    </div>
+  </div>
 
   <script src="main.js"></script>
 </body>
