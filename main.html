@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FarmWise | Agriculture Intelligence & Mandi Analytics</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="main.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            },
+            accent: {
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50/70 text-slate-800 font-sans antialiased min-h-screen">
+
+  <!-- ================= MAIN BRAND HEADER ================= -->
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+      <!-- Logo -->
+      <div>
+        <a href="about.html" class="flex items-center space-x-3.5">
+          <div class="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-brand-500/20">
+            <i class="fa-solid fa-leaf"></i>
+          </div>
+          <div>
+            <span class="text-3xl font-black tracking-tight text-brand-900">Farm<span class="text-brand-600">Wise</span></span>
+            <span class="block text-xs font-semibold text-slate-500" data-en="Next-Gen Agro Market Intelligence" data-hi="नेक्स्ट-जेन कृषि मंडी इंटेलिजेंस">Next-Gen Agro Market Intelligence</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Controls: Location, Language Selection & Login -->
+      <div class="flex items-center gap-3">
+        <!-- Live Location View -->
+        <div class="flex items-center bg-slate-100/80 rounded-2xl p-1.5 border border-slate-200/80">
+          <div class="flex items-center space-x-2 px-3 py-1.5">
+            <i class="fa-solid fa-location-crosshairs text-brand-600 text-base"></i>
+            <div>
+              <span class="text-[10px] uppercase tracking-wider font-bold text-slate-400 block">Detected Region</span>
+              <span class="text-xs font-extrabold text-slate-800" id="current-location-text">Amritsar District, Punjab</span>
+            </div>
+          </div>
+          <button onclick="promptChangeLocation()" class="ml-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl border border-slate-200 shadow-sm transition">
+            Change
+          </button>
+        </div>
+
+        <!-- Language Switcher Button -->
+        <button onclick="toggleLanguage()" class="bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-bold px-4 py-3.5 rounded-2xl border border-brand-200 transition flex items-center gap-2 shadow-sm">
+          <i class="fa-solid fa-globe text-brand-600"></i>
+          <span id="lang-switch-label">English / हिन्दी</span>
+        </button>
+
+        <!-- Login Button -->
+        <a href="login.html" id="login" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold px-4 py-3.5 rounded-2xl shadow-sm hover:shadow transition flex items-center gap-2">
+          <i class="fa-solid fa-user"></i>
+          <span data-en="Login" data-hi="लॉग इन">Login</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= COMPACT SINGLE-LINE TRANSPARENT ROUNDED NAVBAR ================= -->
+  <div style="padding-top:20px; opacity: 0.9;" class="sticky top-3 z-50 max-w-7xl mx-auto px-2 sm:px-6 pointer-events-none">
+    <nav class="pointer-events-auto w-full bg-white/80 backdrop-blur-md border border-slate-200/90 shadow-md shadow-slate-900/5 rounded-full px-2 sm:px-4 py-2 sm:py-2.5 transition-all duration-300">
+      <div class="flex flex-nowrap items-center justify-between gap-1 w-full text-sm sm:text-base font-black text-slate-700">
+        <a href="#weather-advisory" class="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-full whitespace-nowrap hover:text-brand-700 hover:bg-brand-50/80 transition">
+          <i class="fa-solid fa-cloud-sun text-brand-600 text-base sm:text-lg"></i>
+          <span data-en="Weather Advisory" data-hi="मौसम सलाह">Weather Advisory</span>
+        </a>
+        <a href="#crop-finder" class="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-full whitespace-nowrap hover:text-brand-700 hover:bg-brand-50/80 transition">
+          <i class="fa-solid fa-wheat-awn text-brand-600 text-base sm:text-lg"></i>
+          <span data-en="Crop Explorer" data-hi="फसल अन्वेषक">Crop Explorer</span>
+        </a>
+        <a href="#price-analytics" class="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-full whitespace-nowrap hover:text-brand-700 hover:bg-brand-50/80 transition">
+          <i class="fa-solid fa-chart-line text-brand-600 text-base sm:text-lg"></i>
+          <span data-en="Mandi Rates" data-hi="मंडी भाव">Mandi Rates</span>
+        </a>
+        <a href="#interactive-calculator" class="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-full whitespace-nowrap hover:text-brand-700 hover:bg-brand-50/80 transition">
+          <i class="fa-solid fa-calculator text-brand-600 text-base sm:text-lg"></i>
+          <span data-en="Profit Simulator" data-hi="लाभ कैलकुलेटर">Profit Simulator</span>
+        </a>
+        <a href="#step-blueprint" class="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-full whitespace-nowrap hover:text-brand-700 hover:bg-brand-50/80 transition">
+          <i class="fa-solid fa-timeline text-brand-600 text-base sm:text-lg"></i>
+          <span data-en="Agronomy Roadmap" data-hi="खेती रोडमैप">Agronomy Roadmap</span>
+        </a>
+        <a href="#shared-logistics" class="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-full whitespace-nowrap hover:text-brand-700 hover:bg-brand-50/80 transition">
+          <i class="fa-solid fa-truck-fast text-brand-600 text-base sm:text-lg"></i>
+          <span data-en="Shared Transport" data-hi="साझा परिवहन">Shared Transport</span>
+        </a>
+      </div>
+    </nav>
+  </div>
+
+  <!-- ================= VAST WEATHER & SOIL ADVISORY BANNER ================= -->
+  <section id="weather-advisory" class="max-w-7xl mx-auto px-6 py-8">
+    <div class="bg-gradient-to-r from-brand-900 via-brand-800 to-slate-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+      <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl text-white pointer-events-none">
+        <i class="fa-solid fa-cloud-sun-rain"></i>
+      </div>
+
+      <div class="grid lg:grid-cols-12 gap-8 items-center relative z-10">
+        <div class="lg:col-span-7 space-y-4">
+          <div class="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 text-xs font-semibold text-accent-400">
+            <i class="fa-solid fa-bell animate-pulse"></i>
+            <span data-en="Regional Agro-Met Advisory Active" data-hi="क्षेत्रीय कृषि-मौसम सलाह सक्रिय">Regional Agro-Met Advisory Active</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black leading-tight" data-en="Optimal Weather & Sowing Conditions Detected" data-hi="बुवाई के लिए अनुकूल मौसम एवं मिट्टी की स्थिति">
+            Optimal Weather & Sowing Conditions Detected
+          </h1>
+          <p class="text-slate-300 text-sm sm:text-base leading-relaxed" data-en="Subtropical monsoon conditions provide suitable topsoil moisture (68%). Prepare nursery seedbeds for late Kharif vegetables or initiate land laser-leveling for upcoming Rabi grains." data-hi="मॉनसून नमी (68%) सब्जियों की नर्सरी और रबी की भूमि तैयारी के लिए सर्वथा उपयुक्त है।">
+            Subtropical monsoon conditions provide suitable topsoil moisture (68%). Prepare nursery seedbeds for late Kharif vegetables or initiate land laser-leveling for upcoming Rabi grains.
+          </p>
+          <div class="flex flex-wrap gap-4 pt-2">
+            <a href="#sms-triggers" id="sms-triggers-link" class="bg-white/10 hover:bg-white/20 text-white font-bold px-5 py-2.5 rounded-xl text-xs border border-white/20 transition flex items-center gap-2">
+              <i class="fa-solid fa-mobile-screen"></i> <span data-en="Configure Weather SMS" data-hi="मौसम SMS सेट करें">Configure Weather SMS</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 grid grid-cols-2 gap-4">
+          <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+            <div class="flex items-center justify-between text-slate-300 text-xs">
+              <span>Temperature</span>
+              <i class="fa-solid fa-temperature-half text-amber-400"></i>
+            </div>
+            <div class="text-2xl font-black mt-2">29.4°C</div>
+            <div class="text-[11px] text-emerald-300 mt-1 font-semibold">Optimal for Germination</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+            <div class="flex items-center justify-between text-slate-300 text-xs">
+              <span>Soil Moisture</span>
+              <i class="fa-solid fa-droplet text-blue-400"></i>
+            </div>
+            <div class="text-2xl font-black mt-2">68%</div>
+            <div class="text-[11px] text-emerald-300 mt-1 font-semibold">Adequate Sowing Vattar</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+            <div class="flex items-center justify-between text-slate-300 text-xs">
+              <span>48h Rainfall</span>
+              <i class="fa-solid fa-cloud-showers-heavy text-sky-400"></i>
+            </div>
+            <div class="text-2xl font-black mt-2">12-18 mm</div>
+            <div class="text-[11px] text-amber-300 mt-1 font-semibold">Light Sprinkles Expected</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+            <div class="flex items-center justify-between text-slate-300 text-xs">
+              <span>Soil PH & Health</span>
+              <i class="fa-solid fa-flask-vial text-emerald-400"></i>
+            </div>
+            <div class="text-2xl font-black mt-2">7.2 pH</div>
+            <div class="text-[11px] text-slate-300 mt-1 font-semibold">Neutral Loamy Soil</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= EXPANDED SEASONAL CROP EXPLORER ================= -->
+  <section id="crop-finder" class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+      <div>
+        <h2 class="text-3xl font-black text-slate-900" data-en="Beneficial Crops for Current Weather" data-hi="वर्तमान मौसम के लिए लाभकारी फसलें">Beneficial Crops for Current Weather</h2>
+        <p class="text-slate-500 text-sm mt-1" data-en="Curated crop recommendations categorized by growth duration, input cost, and projected ROI." data-hi="फसल अवधि, लागत और संभावित मुनाफे के आधार पर श्रेणीबद्ध अनुशंसित फसलें।">Curated crop recommendations categorized by growth duration, input cost, and projected ROI.</p>
+      </div>
+
+      <!-- Filter Buttons -->
+      <div class="flex flex-wrap gap-2 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm" id="category-filter-bar">
+        <button onclick="filterCropCategory('all')" class="category-btn active px-4 py-2 rounded-xl text-xs font-bold transition" data-cat="all">All Crops</button>
+        <button onclick="filterCropCategory('Cereal')" class="category-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-brand-600 transition" data-cat="Cereal">Cereals & Grains</button>
+        <button onclick="filterCropCategory('Pulse')" class="category-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-brand-600 transition" data-cat="Pulse">Pulses / Legumes</button>
+        <button onclick="filterCropCategory('Horticulture')" class="category-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-brand-600 transition" data-cat="Horticulture">High-Value Horticulture</button>
+        <button onclick="filterCropCategory('Oilseed')" class="category-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-brand-600 transition" data-cat="Oilseed">Oilseeds</button>
+      </div>
+    </div>
+
+    <!-- Responsive Crop Grid -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="expanded-crop-grid">
+      <!-- Dynamic cards injected by main.js -->
+    </div>
+  </section>
+
+  <!-- ================= VAST MANDI & SEED PRICE INTELLIGENCE ================= -->
+  <section id="price-analytics" class="max-w-7xl mx-auto px-6 py-8">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+      
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 border-b border-slate-100 pb-8">
+        <div>
+          <span class="text-xs font-extrabold uppercase tracking-widest text-brand-600 bg-brand-50 px-3 py-1 rounded-full">Interactive Market Terminal</span>
+          <h2 class="text-3xl font-black text-slate-900 mt-2" data-en="Mandi Selling Rates & Seed Buying Comparison" data-hi="मंडी भाव एवं बीज खरीद मूल्य तुलना">Mandi Selling Rates & Seed Buying Comparison</h2>
+          <p class="text-slate-500 text-sm mt-1" data-en="Analyze 6-month historical movements, future forecast highs, and discover nearest certified dealer hubs." data-hi="6 महीने के ऐतिहासिक रुझान, मंडी पूर्वानुमान और निकटतम प्रमाणित बीज केंद्रों की जानकारी।">Analyze 6-month historical movements, future forecast highs, and discover nearest certified dealer hubs.</p>
+        </div>
+
+        <div class="flex items-center gap-3 w-full lg:w-auto bg-slate-50 p-2 rounded-2xl border border-slate-200">
+          <span class="text-xs font-bold text-slate-600 pl-2" data-en="Active Crop:" data-hi="सक्रिय फसल:">Active Crop:</span>
+          <select id="main-crop-selector" class="bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-extrabold text-slate-800 outline-none focus:ring-2 focus:ring-brand-500" onchange="syncSelectedCrop(this.value)">
+            <!-- Dynamic dropdown options -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Graph & Spotlight Cards Grid -->
+      <div class="grid lg:grid-cols-12 gap-8 my-8">
+        
+        <!-- Expanded High-Res Chart Section -->
+        <div class="lg:col-span-8 bg-slate-50/50 rounded-2xl p-6 border border-slate-100">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
+            <div>
+              <h4 class="font-extrabold text-slate-800 text-base" data-en="Price Trend & Harvest Prediction Curve" data-hi="मूल्य रुझान एवं कटाई पूर्वानुमान वक्र">Price Trend & Harvest Prediction Curve</h4>
+              <p class="text-xs text-slate-400">Comparing APMC Mandi Sell Price (₹/Quintal) vs Certified Seed Rate (₹/10kg)</p>
+            </div>
+            <div class="flex items-center gap-2" id="chart-optimal-indicator">
+              <!-- Injected Badge -->
+            </div>
+          </div>
+          <div class="h-80 w-full">
+            <canvas id="interactivePriceChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Highlight Hub Cards -->
+        <div class="lg:col-span-4 space-y-5 flex flex-col justify-between" id="market-spotlight-cards">
+          <!-- Injected Spotlight HTML -->
+        </div>
+      </div>
+
+      <!-- Dual Comparison Tables with Search -->
+      <div class="grid lg:grid-cols-2 gap-8 pt-8 border-t border-slate-100">
+        
+        <!-- Seed Buying Comparison -->
+        <div class="bg-slate-50/40 rounded-2xl p-6 border border-slate-100">
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="text-base font-extrabold text-slate-900 flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center text-sm"><i class="fa-solid fa-cart-shopping"></i></span>
+              <span data-en="Seed Buying Rates (Local Vendors)" data-hi="बीज खरीद दरें (स्थानीय विक्रेता)">Seed Buying Rates (Local Vendors)</span>
+            </h4>
+            <span class="text-[11px] font-bold text-brand-700 bg-brand-100/70 px-2.5 py-1 rounded-lg">Verified Stocks</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 uppercase tracking-wider text-[10px]">
+                <tr>
+                  <th class="p-3">Store / Dealer</th>
+                  <th class="p-3">Location & Distance</th>
+                  <th class="p-3">Price / 10kg</th>
+                  <th class="p-3">Stock & Variety</th>
+                  <th class="p-3">Contact</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700" id="seed-table-rows">
+                <!-- Dynamic Rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Crop Selling Comparison -->
+        <div class="bg-slate-50/40 rounded-2xl p-6 border border-slate-100">
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="text-base font-extrabold text-slate-900 flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm"><i class="fa-solid fa-scale-balanced"></i></span>
+              <span data-en="APMC Mandi Selling Rates" data-hi="APMC मंडी फसल बिक्री दरें">APMC Mandi Selling Rates</span>
+            </h4>
+            <span class="text-[11px] font-bold text-amber-800 bg-amber-100/70 px-2.5 py-1 rounded-lg">Live Mandi Auctions</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 uppercase tracking-wider text-[10px]">
+                <tr>
+                  <th class="p-3">Mandi Hub</th>
+                  <th class="p-3">Distance</th>
+                  <th class="p-3">Live Bid Rate</th>
+                  <th class="p-3">Mandi Demand</th>
+                  <th class="p-3">Directions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700" id="mandi-table-rows">
+                <!-- Dynamic Rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DYNAMIC PROFIT LAB ================= -->
+  <section id="interactive-calculator" class="max-w-7xl mx-auto px-6 py-8">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+      <div class="max-w-3xl mb-8">
+        <span class="text-xs font-extrabold uppercase tracking-widest text-brand-600 bg-brand-50 px-3 py-1 rounded-full">Interactive Farm Finance Engine</span>
+        <h2 class="text-3xl font-black text-slate-900 mt-2" data-en="Net Profit & Cultivation Cost Simulator" data-hi="शुद्ध लाभ एवं खेती लागत सिम्युलेटर">Net Profit & Cultivation Cost Simulator</h2>
+        <p class="text-slate-500 text-sm mt-1" data-en="Adjust real-world parameters using dynamic sliders to compute your exact net realization after seed, fertilizer, labor, transport, and commission charges." data-hi="बीज, खाद, मजदूरी और परिवहन सहित सटीक शुद्ध मुनाफे की गणना करें।">Adjust real-world parameters using dynamic sliders to compute your exact net realization after seed, fertilizer, labor, transport, and commission charges.</p>
+      </div>
+
+      <div class="grid lg:grid-cols-12 gap-10 items-start">
+        
+        <!-- Controls & Sliders -->
+        <div class="lg:col-span-7 space-y-6">
+          
+          <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/80">
+            <div class="flex justify-between items-center mb-2">
+              <label class="text-xs font-extrabold text-slate-700" data-en="Total Farm Area" data-hi="कुल कृषि भूमि">Total Farm Area</label>
+              <span class="text-sm font-black text-brand-700" id="slider-acres-val">3 Acres</span>
+            </div>
+            <input type="range" id="slider-acres" min="0.5" max="25" step="0.5" value="3" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-600" oninput="runProfitSimulator()">
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+              <div class="flex justify-between items-center mb-2">
+                <label class="text-xs font-bold text-slate-700">Expected Yield / Acre</label>
+                <span class="text-xs font-black text-slate-900" id="slider-yield-val">22 Qtl</span>
+              </div>
+              <input type="range" id="slider-yield" min="5" max="45" step="1" value="22" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-600" oninput="runProfitSimulator()">
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+              <div class="flex justify-between items-center mb-2">
+                <label class="text-xs font-bold text-slate-700">Selling Price / Qtl</label>
+                <span class="text-xs font-black text-slate-900" id="slider-rate-val">₹3,850</span>
+              </div>
+              <input type="range" id="slider-rate" min="1500" max="9000" step="50" value="3850" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-600" oninput="runProfitSimulator()">
+            </div>
+          </div>
+
+          <div class="grid sm:grid-cols-3 gap-4">
+            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+              <label class="text-[11px] font-bold text-slate-600 block mb-1">Seed + Fertilizer / Acre</label>
+              <div class="flex items-center">
+                <span class="text-slate-400 text-xs mr-1">₹</span>
+                <input type="number" id="inp-fertilizer" value="6500" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs font-bold outline-none" oninput="runProfitSimulator()">
+              </div>
+            </div>
+            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+              <label class="text-[11px] font-bold text-slate-600 block mb-1">Labor & Machinery / Acre</label>
+              <div class="flex items-center">
+                <span class="text-slate-400 text-xs mr-1">₹</span>
+                <input type="number" id="inp-labor" value="8000" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs font-bold outline-none" oninput="runProfitSimulator()">
+              </div>
+            </div>
+            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+              <label class="text-[11px] font-bold text-slate-600 block mb-1">Transport Rate / Qtl</label>
+              <div class="flex items-center">
+                <span class="text-slate-400 text-xs mr-1">₹</span>
+                <input type="number" id="inp-transport" value="60" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs font-bold outline-none" oninput="runProfitSimulator()">
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Profit Summary Card -->
+        <div class="lg:col-span-5 bg-gradient-to-br from-brand-900 via-brand-800 to-slate-900 rounded-3xl p-7 text-white shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-6 border-b border-brand-700/60 pb-4">
+              <div>
+                <span class="text-xs uppercase tracking-wider text-brand-200 font-bold block">Financial Outcome</span>
+                <h4 class="text-lg font-black" data-en="Net Profit Summary" data-hi="शुद्ध लाभ सारांश">Net Profit Summary</h4>
+              </div>
+              <span class="bg-emerald-400/20 text-emerald-300 text-xs font-extrabold px-3 py-1 rounded-full border border-emerald-400/30" id="sim-roi-badge">+380% ROI</span>
+            </div>
+
+            <!-- Big Net Figure -->
+            <div class="mb-6">
+              <span class="text-xs text-brand-200 block font-semibold">Estimated Net Take-Home</span>
+              <div class="text-4xl sm:text-5xl font-black text-white tracking-tight mt-1" id="sim-net-profit">₹2,06,640</div>
+              <span class="text-xs text-slate-300 mt-1 block">For 66.0 Total Quintals Harvest</span>
+            </div>
+
+            <!-- Cost Distribution Bar -->
+            <div class="space-y-2 mb-6">
+              <div class="flex justify-between text-xs text-slate-300 font-semibold">
+                <span>Gross Revenue: <strong class="text-white" id="sim-gross-revenue">₹2,54,100</strong></span>
+                <span>Total Costs: <strong class="text-rose-300" id="sim-total-costs">₹47,460</strong></span>
+              </div>
+              <div class="w-full h-3 bg-white/20 rounded-full overflow-hidden flex">
+                <div class="bg-emerald-400 h-full" id="bar-profit" style="width: 81%;"></div>
+                <div class="bg-amber-400 h-full" id="bar-input" style="width: 10%;"></div>
+                <div class="bg-rose-400 h-full" id="bar-labor" style="width: 7%;"></div>
+                <div class="bg-sky-400 h-full" id="bar-transport" style="width: 2%;"></div>
+              </div>
+              <div class="flex justify-between text-[10px] text-slate-300 pt-1">
+                <span><i class="fa-solid fa-circle text-emerald-400 text-[8px]"></i> Net Profit</span>
+                <span><i class="fa-solid fa-circle text-amber-400 text-[8px]"></i> Seeds/Fert</span>
+                <span><i class="fa-solid fa-circle text-rose-400 text-[8px]"></i> Labor/Machinery</span>
+                <span><i class="fa-solid fa-circle text-sky-400 text-[8px]"></i> Transport</span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="downloadProfitReport()" class="w-full bg-accent-500 hover:bg-accent-600 text-brand-900 font-extrabold py-3.5 rounded-2xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition">
+            <i class="fa-solid fa-file-arrow-down text-sm"></i> <span data-en="Export Farm Balance Sheet (PDF)" data-hi="बैलेंस शीट डाउनलोड करें">Export Farm Balance Sheet (PDF)</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TIMELINE BLUEPRINTS ================= -->
+  <section id="step-blueprint" class="max-w-7xl mx-auto px-6 py-8">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <span class="text-xs font-extrabold uppercase tracking-widest text-brand-600 bg-brand-50 px-3 py-1 rounded-full">Agronomy SOP</span>
+          <h2 class="text-3xl font-black text-slate-900 mt-2" id="blueprint-title">Full Lifecycle Cultivation Blueprint</h2>
+          <p class="text-slate-500 text-sm mt-1">Detailed phase-by-phase advisory from certified agricultural universities.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-bold text-slate-500">Timeline Mode:</span>
+          <span class="bg-slate-100 text-slate-700 text-xs font-extrabold px-3 py-1.5 rounded-xl border border-slate-200" id="blueprint-duration">120 - 135 Days Duration</span>
+        </div>
+      </div>
+
+      <!-- Roadmap Grid -->
+      <div class="grid md:grid-cols-4 gap-6 relative" id="blueprint-steps-container">
+        <!-- Dynamic steps injected by main.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SHARED TRANSPORT POOL ================= -->
+  <section id="shared-logistics" class="max-w-7xl mx-auto px-6 py-8">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <span class="text-xs font-extrabold uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">Community Logistics</span>
+          <h2 class="text-3xl font-black text-slate-900 mt-2" data-en="Shared Transport & Co-Loading Hub" data-hi="साझा वाहन और सह-ढुलाई केंद्र">Shared Transport & Co-Loading Hub</h2>
+          <p class="text-slate-500 text-sm mt-1" data-en="Pool tractor trolleys and pick-ups heading to the same APMC Mandi. Cut individual transport charges by up to 45%." data-hi="एक ही मंडी जाने वाले अन्य किसानों के साथ वाहन साझा कर 45% तक खर्च बचाएं।">Pool tractor trolleys and pick-ups heading to the same APMC Mandi. Cut individual transport charges by up to 45%.</p>
+        </div>
+        <button onclick="openPostVehicleModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-extrabold px-5 py-3 rounded-2xl text-xs flex items-center gap-2 shadow-lg shadow-brand-600/20 transition">
+          <i class="fa-solid fa-plus"></i> <span data-en="Post Your Empty Trolley Space" data-hi="अपने वाहन में खाली स्थान पोस्ट करें">Post Your Empty Trolley Space</span>
+        </button>
+      </div>
+
+      <!-- Live Rides Grid -->
+      <div class="grid md:grid-cols-3 gap-6" id="rides-container">
+        <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 hover:bg-white hover:shadow-md transition">
+          <div class="flex justify-between items-start mb-3">
+            <span class="bg-brand-100 text-brand-800 text-[11px] font-black px-2.5 py-1 rounded-lg">Tractor Trolley</span>
+            <span class="text-xs font-bold text-emerald-600">₹40 / Qtl Rate</span>
+          </div>
+          <h4 class="font-extrabold text-slate-900 text-base">Rayya Bypass → Bhagtanwala Mandi</h4>
+          <p class="text-xs text-slate-500 mt-1">Driver: Gurmeet Singh • Phone Verified</p>
+          <div class="my-4 py-3 border-y border-slate-200/80 grid grid-cols-2 gap-2 text-xs">
+            <div>Departure: <strong class="block text-slate-800">Tomorrow, 05:00 AM</strong></div>
+            <div>Available: <strong class="block text-brand-700">45 Quintals</strong></div>
+          </div>
+          <button onclick="requestRide('Gurmeet Singh')" class="w-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold py-2.5 rounded-xl transition">
+            Book Shared Space
+          </button>
+        </div>
+
+        <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 hover:bg-white hover:shadow-md transition">
+          <div class="flex justify-between items-start mb-3">
+            <span class="bg-blue-100 text-blue-800 text-[11px] font-black px-2.5 py-1 rounded-lg">Mini Truck (Bolero Maxi)</span>
+            <span class="text-xs font-bold text-emerald-600">₹45 / Qtl Rate</span>
+          </div>
+          <h4 class="font-extrabold text-slate-900 text-base">Majitha Mandi → Amritsar City APMC</h4>
+          <p class="text-xs text-slate-500 mt-1">Driver: Harpreet Singh • Fast Express</p>
+          <div class="my-4 py-3 border-y border-slate-200/80 grid grid-cols-2 gap-2 text-xs">
+            <div>Departure: <strong class="block text-slate-800">Today, 08:30 PM</strong></div>
+            <div>Available: <strong class="block text-brand-700">18 Quintals</strong></div>
+          </div>
+          <button onclick="requestRide('Harpreet Singh')" class="w-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold py-2.5 rounded-xl transition">
+            Book Shared Space
+          </button>
+        </div>
+
+        <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 hover:bg-white hover:shadow-md transition">
+          <div class="flex justify-between items-start mb-3">
+            <span class="bg-amber-100 text-amber-800 text-[11px] font-black px-2.5 py-1 rounded-lg">High-Capacity Trailer</span>
+            <span class="text-xs font-bold text-emerald-600">₹35 / Qtl Rate</span>
+          </div>
+          <h4 class="font-extrabold text-slate-900 text-base">Jandiala Guru → Tarn Taran APMC</h4>
+          <p class="text-xs text-slate-500 mt-1">Driver: Sukhdev Dhillon • Community Fleet</p>
+          <div class="my-4 py-3 border-y border-slate-200/80 grid grid-cols-2 gap-2 text-xs">
+            <div>Departure: <strong class="block text-slate-800">Saturday, 06:00 AM</strong></div>
+            <div>Available: <strong class="block text-brand-700">90 Quintals</strong></div>
+          </div>
+          <button onclick="requestRide('Sukhdev Dhillon')" class="w-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold py-2.5 rounded-xl transition">
+            Book Shared Space
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SMS PRICE TRIGGER SYSTEM ================= -->
+  <section id="sms-triggers" class="max-w-7xl mx-auto px-6 py-8">
+    <div class="bg-gradient-to-r from-slate-900 via-brand-950 to-brand-900 text-white rounded-3xl p-8 sm:p-10 shadow-2xl relative overflow-hidden">
+      <div class="grid lg:grid-cols-12 gap-10 items-center">
+        
+        <div class="lg:col-span-6 space-y-4">
+          <span class="bg-accent-500 text-brand-900 font-black text-xs uppercase tracking-widest px-3.5 py-1.5 rounded-full inline-block">
+            Automated SMS Watchdog
+          </span>
+          <h2 class="text-3xl sm:text-4xl font-black leading-tight" data-en="Get Instant SMS Alerts When Mandi Prices Move" data-hi="मंडी भाव बढ़ने या गिरने पर तुरंत एसएमएस अलर्ट पाएं">
+            Get Instant SMS Alerts When Mandi Prices Move
+          </h2>
+          <p class="text-slate-300 text-sm leading-relaxed" data-en="Set automated price triggers. You will receive an instant SMS the moment Mandi rates cross your upper target ceiling or fall below your baseline safety threshold." data-hi="अपने मोबाइल पर अलर्ट सेट करें। मंडी भाव के आपके लक्ष्य तक पहुंचने पर तुरंत SMS मिलेगा।">
+            Set automated price triggers. You will receive an instant SMS the moment Mandi rates cross your upper target ceiling or fall below your baseline safety threshold.
+          </p>
+          <div class="flex items-center space-x-4 text-xs text-slate-300 pt-2">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-accent-400"></i> No Spam Policy</span>
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-bolt text-accent-400"></i> Instant 2-second SMS</span>
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-language text-accent-400"></i> Multilingual</span>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6">
+          <form class="bg-white/10 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/15 space-y-4 shadow-xl" onsubmit="handleSmsSubscription(event)">
+            <div>
+              <label class="block text-xs font-bold text-slate-200 mb-1.5" data-en="Farmer Mobile Number" data-hi="किसान मोबाइल नंबर">Farmer Mobile Number</label>
+              <div class="relative">
+                <span class="absolute left-3.5 top-3 text-slate-400 font-bold text-xs">+91</span>
+                <input type="tel" id="sms-mobile" placeholder="98765 43210" pattern="[0-9]{10}" class="w-full bg-white text-slate-900 pl-12 pr-4 py-2.5 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-accent-400" required>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-200 mb-1.5" data-en="Alert if Price Rises Above" data-hi="भाव इससे ऊपर जाने पर">Alert if Price Rises Above</label>
+                <input type="number" id="sms-trigger-rise" placeholder="₹4,000 / Qtl" class="w-full bg-white text-slate-900 px-3.5 py-2.5 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-accent-400">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-200 mb-1.5" data-en="Alert if Price Falls Below" data-hi="भाव इससे नीचे जाने पर">Alert if Price Falls Below</label>
+                <input type="number" id="sms-trigger-fall" placeholder="₹3,400 / Qtl" class="w-full bg-white text-slate-900 px-3.5 py-2.5 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-accent-400">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-200 mb-1.5" data-en="Preferred SMS Language" data-hi="एसएमएस भाषा चुनें">Preferred SMS Language</label>
+              <select id="sms-language-select" class="w-full bg-white text-slate-900 px-3.5 py-2.5 rounded-xl font-bold text-xs outline-none focus:ring-2 focus:ring-accent-400">
+                <option value="Hindi">हिन्दी (Hindi SMS)</option>
+                <option value="English">English SMS</option>
+                <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi SMS)</option>
+              </select>
+            </div>
+
+            <button type="submit" class="w-full bg-accent-500 hover:bg-accent-600 text-brand-900 font-black py-3.5 rounded-xl text-xs uppercase tracking-widest shadow-xl transition">
+              <i class="fa-solid fa-bell mr-1.5"></i> <span data-en="Activate Live SMS Watchdog" data-hi="लाइव एसएमएस अलर्ट सक्रिय करें">Activate Live SMS Watchdog</span>
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="bg-brand-950 text-slate-400 text-xs pt-12 pb-8 border-t border-brand-900 mt-12">
+    <div class="max-w-7xl mx-auto px-6 grid sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+      <div>
+        <div class="flex items-center space-x-3 mb-4">
+          <div class="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center text-white text-lg font-bold">
+            <i class="fa-solid fa-leaf"></i>
+          </div>
+          <span class="text-2xl font-black text-white">Farm<span class="text-brand-500">Wise</span></span>
+        </div>
+        <p class="leading-relaxed">Democratizing real-time mandi prices, agromet advisories, and shared logistics for farming communities across India.</p>
+      </div>
+      <div>
+        <h4 class="text-white font-extrabold uppercase tracking-wider mb-3">Mandi Portals</h4>
+        <ul class="space-y-2">
+          <li><a href="#" class="hover:text-white transition">e-NAM National Agriculture Market</a></li>
+          <li><a href="#" class="hover:text-white transition">Punjab Mandi Board (APMC)</a></li>
+          <li><a href="#" class="hover:text-white transition">Haryana Mandi Portal</a></li>
+          <li><a href="#" class="hover:text-white transition">Certified Seed Portals</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-extrabold uppercase tracking-wider mb-3">Agronomy Tools</h4>
+        <ul class="space-y-2">
+          <li><a href="#interactive-calculator" class="hover:text-white transition">Farm Profit Calculator</a></li>
+          <li><a href="#price-analytics" class="hover:text-white transition">6-Month Mandi Trend Analyzer</a></li>
+          <li><a href="#step-blueprint" class="hover:text-white transition">Fertilizer Dosing Calendar</a></li>
+          <li><a href="#shared-logistics" class="hover:text-white transition">Trolley Load Sharing Hub</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-extrabold uppercase tracking-wider mb-3">Kisan Helpline</h4>
+        <p class="mb-2">Toll-Free Government Kisan Call Centre:</p>
+        <div class="text-white font-black text-base">1800-180-1551</div>
+        <div class="mt-3 text-[11px] text-emerald-400">Available 24x7 in Regional Languages</div>
+      </div>
+    </div>
+    <div class="max-w-7xl mx-auto px-6 border-t border-slate-800/80 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <p>© 2026 FarmWise Agro-Informatics Platform. All Rights Reserved.</p>
+      <p class="text-slate-500">Designed for seamless performance on rural high-latency networks.</p>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
